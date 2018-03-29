@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="29f247a0-fe79-4b22-b787-c17571b84930" name="6199-pytorch" url="http://10.12.218.210">
+        <fileTransfer host="10.12.218.210" port="6122" rootFolder="/home/jiange" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="6122" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
