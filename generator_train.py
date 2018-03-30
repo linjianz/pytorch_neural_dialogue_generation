@@ -28,15 +28,15 @@ def run_batch(sample, model, optimizer, loss_func, phase='Train'):
     else:
         model.eval()
 
-    source = to_var(sample['source'])
-    target = to_var(sample['target'])
+    source = to_var(sample['source'].transpose(0, 1))       # T x B
+    target = to_var(sample['target'].transpose(0, 1))       # T x B
     loss = 0  # Added onto for each word
-    _, time_step = tuple(target.size())
+    time_step, _ = tuple(target.size())
 
     # Run words through encoder
     # TODO: notice that must use model.module to call class method in nn.DataParallel
-    encoder_hidden = model.init_hidden(args.batch_size)
-    encoder_outputs, encoder_hidden = model.encoder(source, encoder_hidden)
+    encoder_hidden = model.module.init_hidden(args.batch_size)
+    encoder_outputs, encoder_hidden = model.module.encoder(source, encoder_hidden)
 
     decoder_context = to_var(torch.zeros(args.batch_size, args.hidden_size))
     decoder_hidden = encoder_hidden  # Use last hidden state from encoder to start decoder
@@ -48,10 +48,10 @@ def run_batch(sample, model, optimizer, loss_func, phase='Train'):
     if use_teacher_forcing:
         # Teacher forcing: Use the ground-truth target as the next input
         for i in range(time_step-1):
-            decoder_output, decoder_context, decoder_hidden, decoder_attention = model(target[:, i], decoder_context,
+            decoder_output, decoder_context, decoder_hidden, decoder_attention = model(target[i, :], decoder_context,
                                                                                        decoder_hidden, encoder_outputs)
             # decoder_output: B x Vocab, target: B x T
-            loss += loss_func(decoder_output, target[:, i+1])
+            loss += loss_func(decoder_output, target[i+1, :])
             count += 1
             # if target[i+1] == args.EOS_ID:
             #     break
@@ -90,7 +90,7 @@ def train():
                     layer_num=args.layer_num)
     print(model)
     if torch.cuda.is_available():
-        model = nn.DataParallel(model.cuda(), device_ids=args.gpu)
+        model = nn.DataParallel(model.cuda(), device_ids=args.gpu, dim=1)
         # model.cuda()
     loss_func = nn.NLLLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr_base)

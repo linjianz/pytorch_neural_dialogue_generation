@@ -106,14 +106,14 @@ class Seq2Seq(nn.Module):
     def forward(self, word_input, last_context, last_hidden, outputs_encoder):
         """ Note: we run this one step at a time
         Input:
-            word_input: one time step of decoder input (word index) > 1 x B
+            word_input: one time step of decoder input (word index) > B
             last_context: init zeros > B x N
             last_hidden: init is encoder's last hidden > layers*direction x B x N
             outputs_encoder: T_encoder x B x N
         Return:
             output: B x N
         """
-        word_embedded = self.embedding(word_input).contiguous()     # 1 x B x N
+        word_embedded = self.embedding(word_input.unsqueeze(0)).contiguous()     # 1 x B x N
         last_context = last_context.contiguous()
 
         # Combine embedded input word and last context, run through RNN
