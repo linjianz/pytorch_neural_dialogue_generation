@@ -15,11 +15,14 @@ from time import time
 from tensorboardX import SummaryWriter
 from dataset.opensubdata import OpenSub, OpenSubDataSet
 from net.seq2seq_attention import Seq2Seq
-from utils.misc import adjust_learning_rate, mk_dir_train, display_loss, to_var
+from utils.misc import adjust_lr, mk_dir_train, display_loss, to_var
 from utils.conf import get_parser
 
 
-def run_batch(sample, model, optimizer, loss_func, args, phase='Train'):
+args = get_parser()
+
+
+def run_batch(sample, model, optimizer, loss_func, phase='Train'):
     if phase == 'Train':
         model.train()
     else:
@@ -87,8 +90,8 @@ def train():
                     layer_num=args.layer_num)
     print(model)
     if torch.cuda.is_available():
-        # model = nn.DataParallel(model.cuda(), device_ids=args.gpu)
-        model.cuda()
+        model = nn.DataParallel(model.cuda(), device_ids=args.gpu)
+        # model.cuda()
     loss_func = nn.NLLLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr_base)
 
@@ -96,7 +99,7 @@ def train():
     data_set = OpenSub(args)
     data_set_train = OpenSubDataSet(data_set.sources_train, data_set.targets_train)
     data_set_valid = OpenSubDataSet(data_set.sources_valid, data_set.targets_valid)
-    dir_model_date, dir_log_date = pre_create_file_train(dir_model, dir_log, args)
+    dir_model_date, dir_log_date = mk_dir_train(args)
     writer = SummaryWriter(dir_log_date)
 
     print('Prepare data loader')
@@ -108,7 +111,7 @@ def train():
 
     print('Start Training'.center(100, '='))
     while True:
-        adjust_learning_rate(optimizer, epoch_current, args.lr_base, args.lr_decay_rate, args.epoch_lr_decay)
+        adjust_lr(optimizer, epoch_current, args.lr_base, args.lr_decay_rate, args.epoch_lr_decay)
         loss_list = []
         for step, sample_batch in enumerate(loader_train):
             step_global = epoch_current * step_per_epoch + step
@@ -117,7 +120,6 @@ def train():
                              model=model,
                              optimizer=optimizer,
                              loss_func=loss_func,
-                             args=args,
                              phase='Train')
             hour_per_epoch = step_per_epoch * ((time() - tic) / 3600)
             loss_list.append(loss)
@@ -139,5 +141,4 @@ def train():
 
 
 if __name__ == '__main__':
-    args = get_parser()
     train()

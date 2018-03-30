@@ -80,7 +80,7 @@ def init_xavier(m):
         init.constant(m.bias.data, 0.0)
 
 
-def adjust_learning_rate(optimizer, epoch, lr_base, gamma=0.316, epoch_lr_decay=25):
+def adjust_lr(optimizer, epoch, lr_base, gamma=0.316, epoch_lr_decay=25):
     """
         epoch       lr
         000-025     1e-4

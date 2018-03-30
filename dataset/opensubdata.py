@@ -63,8 +63,8 @@ class OpenSubDataSet(Dataset):
 
     def __getitem__(self, item):
         sample = dict()
-        sample['source'] = self.sources[item]
-        sample['target'] = self.targets[item]
+        sample['source'] = self.sources[item].transpose(0, 1)
+        sample['target'] = self.targets[item].transpose(0, 1)
 
         return sample
 
